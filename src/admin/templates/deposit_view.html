@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Депозит #{{ d.id }}{% endblock %}
+{% block content %}
+<h1>Депозит #{{ d.id }} <span class="badge badge-{{ d.status }}">{{ tr('deposit_status', d.status) }}</span></h1>
+
+<div class="panel">
+  <h2>Информация</h2>
+  <table>
+    <tr><th>Пользователь</th><td>{% if user %}@{{ user.username or user.telegram_id }} ({{ user.full_name or '—' }}){% endif %}</td></tr>
+    <tr><th>Тариф</th><td>{{ d.tariff.name if d.tariff else '?' }}</td></tr>
+    <tr><th>Сумма</th><td>{{ d.amount }}</td></tr>
+    <tr><th>Создан</th><td>{{ d.created_at | bk }}</td></tr>
+    <tr><th>Старт</th><td>{{ d.started_at | bk }}</td></tr>
+    <tr><th>Окончание</th><td>{{ d.ends_at | bk }}</td></tr>
+    <tr><th>Реквизит выплаты</th><td>{{ d.payout_bank or '—' }} - {{ d.payout_number or '—' }}</td></tr>
+    <tr><th>ФИО</th><td>{{ d.payout_full_name or '—' }}</td></tr>
+    {% if d.rejected_reason %}<tr><th>Причина отклонения</th><td>{{ d.rejected_reason }}</td></tr>{% endif %}
+  </table>
+</div>
+
+<div class="panel">
+  <h2>Действия</h2>
+  <div class="flex-row">
+    {% if d.status == 'pending' %}
+    <form method="post" action="/deposits/{{ d.id }}/confirm" style="display:inline;">
+      <button class="btn btn-success" type="submit">Подтвердить</button>
+    </form>
+    <form method="post" action="/deposits/{{ d.id }}/reject" style="display:inline;">
+      <input name="reason" placeholder="Причина" style="width:240px;">
+      <button class="btn btn-danger" type="submit">Отклонить</button>
+    </form>
+    {% endif %}
+    {% if d.status == 'active' %}
+    <form method="post" action="/deposits/{{ d.id }}/cancel" style="display:inline;">
+      <button class="btn btn-danger" type="submit">Закрыть досрочно</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+{% if payouts %}
+<div class="panel">
+  <h2>График выплат</h2>
+  <table>
+    <tr><th>#</th><th>Сумма</th><th>Дата</th><th>Статус</th><th>Оплачен</th></tr>
+    {% for p in payouts %}
+    <tr>
+      <td>{{ p.seq }}</td><td>{{ p.amount }}</td>
+      <td>{{ p.due_at | bk_date }}</td>
+      <td><span class="badge badge-{{ p.status }}">{{ tr('payout_status', p.status) }}</span></td>
+      <td>{{ p.paid_at | bk }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Реквизиты выплаты</h2>
+  <form method="post" action="/deposits/{{ d.id }}/requisites">
+    <div class="row">
+      <div class="field"><label>Банк</label><input name="payout_bank" value="{{ d.payout_bank or '' }}"></div>
+      <div class="field"><label>Номер карты / телефона / кошелька</label><input name="payout_number" value="{{ d.payout_number or '' }}"></div>
+      <div class="field"><label>ФИО получателя</label><input name="payout_full_name" value="{{ d.payout_full_name or '' }}"></div>
+    </div>
+    <button class="btn btn-primary" type="submit">Сохранить</button>
+  </form>
+</div>
+
+<a class="btn" href="/deposits">К списку</a>
+{% endblock %}

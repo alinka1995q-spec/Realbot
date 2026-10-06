@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Администраторы{% endblock %}
+{% block content %}
+<h1>Администраторы</h1>
+<div class="panel">
+  {% if items %}
+  <table>
+    <tr><th>#</th><th>Тип</th><th>Telegram ID</th><th>Username</th><th>Имя</th><th>Роль</th><th>Добавлен</th><th></th></tr>
+    {% for a in items %}
+    <tr>
+      <td>{{ a.id }}</td>
+      <td>{% if a.is_root %}root{% else %}—{% endif %}</td>
+      <td>{{ a.telegram_id }}</td><td>@{{ a.username or '—' }}</td>
+      <td>{{ a.name or '—' }}</td><td>{{ tr('admin_role', a.role) }}</td>
+      <td>{{ a.created_at | bk_date }}</td>
+      <td>
+        {% if not a.is_root %}
+        <form method="post" action="/admins/{{ a.id }}/delete" style="display:inline;">
+          <button class="btn btn-sm btn-danger">Удалить</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Добавить</h2>
+  <form method="post" action="/admins/create">
+    <div class="row">
+      <div class="field"><label>Telegram ID</label><input name="telegram_id" type="number" required></div>
+      <div class="field"><label>Имя</label><input name="name"></div>
+      <div class="field"><label>Username</label><input name="username"></div>
+      <div class="field">
+        <label>Роль</label>
+        <select name="role">{% for r in roles %}<option value="{{ r }}">{{ tr('admin_role', r) }}</option>{% endfor %}</select>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Добавить</button>
+  </form>
+</div>
+{% endblock %}

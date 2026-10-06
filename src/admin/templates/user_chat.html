@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Чат с #{{ u.id }}{% endblock %}
+{% block content %}
+<h1>Чат с @{{ u.username or u.telegram_id }}</h1>
+<div class="panel">
+  {% if messages %}
+  <div class="chat">
+    {% for m in messages %}
+    <div class="msg {{ m.direction }}">
+      <div>{{ m.text or ('['+m.media_type+']' if m.media_type else '') }}</div>
+      <div class="ts">{{ (m.created_at | bk) if m.created_at else '' }}</div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}<div class="empty"><h3>Переписки нет</h3></div>{% endif %}
+</div>
+<a class="btn" href="/users/{{ u.id }}">К пользователю</a>
+{% endblock %}

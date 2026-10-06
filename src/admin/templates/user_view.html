@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Пользователь #{{ u.id }}{% endblock %}
+{% block content %}
+<h1>{{ u.full_name or '—' }} <span style="color: var(--color-text-muted); font-weight: 400;">#{{ u.id }}</span></h1>
+
+<div class="cards">
+  <div class="card"><div class="label">Telegram ID</div><div class="value">{{ u.telegram_id }}</div></div>
+  <div class="card"><div class="label">Username</div><div class="value">@{{ u.username or '—' }}</div></div>
+  <div class="card"><div class="label">Баланс</div><div class="value">{{ u.balance }}</div></div>
+  <div class="card"><div class="label">Рефералы</div><div class="value">{{ levels[1] }}/{{ levels[2] }}/{{ levels[3] }}</div><div class="sub">L1/L2/L3</div></div>
+  <div class="card"><div class="label">Статус</div><div class="value">{% if u.is_blocked %}Заблокирован{% else %}Активен{% endif %}</div></div>
+  <div class="card"><div class="label">Регистрация</div><div class="value">{{ u.created_at | bk_date }}</div></div>
+</div>
+
+<div class="panel">
+  <h2>Действия</h2>
+  <div class="flex-row" style="gap:24px;">
+    <form method="post" action="/users/{{ u.id }}/balance" class="flex-row">
+      <input name="amount" type="number" step="0.01" placeholder="±сумма" required>
+      <input name="comment" placeholder="комментарий" style="width:200px;">
+      <button class="btn btn-primary" type="submit">Изменить баланс</button>
+    </form>
+    <form method="post" action="/users/{{ u.id }}/block">
+      <input name="reason" placeholder="причина">
+      <button class="btn btn-danger" type="submit">{% if u.is_blocked %}Разблокировать{% else %}Заблокировать{% endif %}</button>
+    </form>
+    <a class="btn" href="/users/{{ u.id }}/chat">Переписка</a>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Профиль</h2>
+  <form method="post" action="/users/{{ u.id }}/profile">
+    <div class="row">
+      <div class="field"><label>ФИО</label><input name="full_name" value="{{ u.full_name or '' }}"></div>
+      <div class="field"><label>Телефон</label><input name="phone" value="{{ u.phone or '' }}" placeholder="+996..."></div>
+      <div class="field">
+        <label>Язык</label>
+        <select name="lang">
+          <option value="ru" {% if u.lang == 'ru' %}selected{% endif %}>Русский</option>
+          <option value="kg" {% if u.lang == 'kg' %}selected{% endif %}>Кыргызча</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Сохранить профиль</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Реквизиты для выплат</h2>
+  <p style="color: var(--color-text-muted); font-size: 13px; margin: 0 0 12px;">
+    Поменять реквизиты на депозитах пользователя. Применяется массово.
+  </p>
+  {% set last_dep = deposits[0] if deposits else None %}
+  <form method="post" action="/users/{{ u.id }}/requisites">
+    <div class="row">
+      <div class="field">
+        <label>Банк</label>
+        <input name="payout_bank" value="{{ (last_dep.payout_bank if last_dep else '') or '' }}" placeholder="MBank, O!Деньги, USDT TRC20...">
+      </div>
+      <div class="field">
+        <label>Номер карты / телефона / кошелька</label>
+        <input name="payout_number" value="{{ (last_dep.payout_number if last_dep else '') or '' }}">
+      </div>
+      <div class="field">
+        <label>ФИО получателя</label>
+        <input name="payout_full_name" value="{{ (last_dep.payout_full_name if last_dep else '') or '' }}">
+      </div>
+      <div class="field">
+        <label>Применить к</label>
+        <select name="scope">
+          <option value="active">Активным и ожидающим</option>
+          <option value="all">Всем депозитам</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" type="submit">Сохранить реквизиты</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Депозиты ({{ deposits|length }})</h2>
+  {% if deposits %}
+  <table>
+    <tr><th>#</th><th>Тариф</th><th>Сумма</th><th>Статус</th><th>Дата</th></tr>
+    {% for d in deposits %}
+    <tr>
+      <td><a href="/deposits/{{ d.id }}">{{ d.id }}</a></td>
+      <td>{{ d.tariff.name if d.tariff else '?' }}</td>
+      <td>{{ d.amount }}</td>
+      <td><span class="badge badge-{{ d.status }}">{{ tr('deposit_status', d.status) }}</span></td>
+      <td>{{ d.created_at | bk_date }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<div class="empty">Нет депозитов</div>{% endif %}
+</div>
+
+<div class="panel">
+  <h2>Реф. начисления ({{ referrals|length }})</h2>
+  {% if referrals %}
+  <table>
+    <tr><th>Уровень</th><th>От пользователя</th><th>Депозит</th><th>%</th><th>Сумма</th><th>Дата</th></tr>
+    {% for r in referrals %}
+    <tr>
+      <td>L{{ r.level }}</td><td>#{{ r.from_user_id }}</td><td>#{{ r.deposit_id }}</td>
+      <td>{{ r.percent }}</td><td>{{ r.amount }}</td>
+      <td>{{ r.created_at | bk }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<div class="empty">Нет начислений</div>{% endif %}
+</div>
+
+<div class="panel">
+  <h2>Выводы ({{ withdrawals|length }})</h2>
+  {% if withdrawals %}
+  <table>
+    <tr><th>#</th><th>Сумма</th><th>Реквизит</th><th>Статус</th><th>Дата</th></tr>
+    {% for w in withdrawals %}
+    <tr><td>{{ w.id }}</td><td>{{ w.amount }}</td><td>{{ w.bank }} {{ w.number }}</td><td><span class="badge badge-{{ w.status }}">{{ tr('withdrawal_status', w.status) }}</span></td><td>{{ w.created_at | bk_date }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}<div class="empty">Нет выводов</div>{% endif %}
+</div>
+
+<div class="panel">
+  <h2>История баланса</h2>
+  {% if balance_log %}
+  <table>
+    <tr><th>Дата</th><th>Сумма</th><th>Причина</th><th>Комментарий</th></tr>
+    {% for b in balance_log %}
+    <tr>
+      <td>{{ b.created_at | bk }}</td>
+      <td style="color: {% if b.amount >= 0 %}#4ade80{% else %}#f87171{% endif %};">{{ b.amount }}</td>
+      <td>{{ b.reason }}</td><td>{{ b.comment or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<div class="empty">Нет операций</div>{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Банки{% endblock %}
+{% block content %}
+<h1>Банки</h1>
+
+<div class="panel">
+  <p style="color: var(--color-text-muted); font-size: 14px; margin: 0 0 12px;">
+    Список банков и платёжных систем, доступных пользователям при создании депозита и выводе.
+    Категория — это группа способов (Банки / Крипта / КриптоБот). В боте сначала выбирается категория, потом конкретный способ.
+  </p>
+  {% if items %}
+  <table>
+    <tr><th>#</th><th>Название</th><th>Категория</th><th>Порядок</th><th>Активен</th><th></th></tr>
+    {% for b in items %}
+    <tr>
+      <td>{{ b.id }}</td>
+      <td colspan="3">
+        <form method="post" action="/banks/{{ b.id }}/update" class="flex-row" style="gap:6px;">
+          <input name="name" value="{{ b.name }}" style="flex:1.5; min-width: 150px;">
+          <input name="category" value="{{ b.category }}" style="flex:1; min-width: 110px;">
+          <input name="sort_order" type="number" value="{{ b.sort_order }}" style="width: 70px;">
+          <button class="btn btn-sm btn-primary">Сохранить</button>
+        </form>
+      </td>
+      <td><span class="dot {% if b.is_active %}dot-on{% else %}dot-off{% endif %}"></span></td>
+      <td>
+        <div class="flex-row" style="gap:6px;">
+          <form method="post" action="/banks/{{ b.id }}/toggle" style="display:inline;">
+            <button class="btn btn-sm">{% if b.is_active %}Отключить{% else %}Включить{% endif %}</button>
+          </form>
+          <form method="post" action="/banks/{{ b.id }}/delete" style="display:inline;" onsubmit="return confirm('Удалить банк {{ b.name }}?');">
+            <button class="btn btn-sm btn-danger">Удалить</button>
+          </form>
+        </div>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<div class="empty"><h3>Банков нет</h3><p>Добавь первый ниже.</p></div>{% endif %}
+</div>
+
+<div class="panel">
+  <h2>Добавить банк</h2>
+  <form method="post" action="/banks/create">
+    <div class="row">
+      <div class="field"><label>Название</label><input name="name" required placeholder="MBank, Optima Bank, USDT TRC20..."></div>
+      <div class="field"><label>Категория</label><input name="category" value="Банки" placeholder="Банки / Крипта / КриптоБот"></div>
+      <div class="field"><label>Порядок</label><input name="sort_order" type="number" value="0"></div>
+    </div>
+    <button class="btn btn-primary">Добавить</button>
+  </form>
+</div>
+{% endblock %}

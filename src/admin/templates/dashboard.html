@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}Дашборд - Deposit Bot{% endblock %}
+{% block content %}
+<div class="dash-head">
+  <h1>Дашборд</h1>
+  <div class="tz-badge">🇰🇬 Бишкек · {{ stats.bishkek_now }}</div>
+</div>
+
+<div class="cards">
+  <div class="card">
+    <div class="label">Всего пользователей</div>
+    <div class="value">{{ stats.total_users }}</div>
+    <div class="sub">+{{ stats.new_d }} за сегодня</div>
+  </div>
+  <div class="card">
+    <div class="label">Новых за 7 дней</div>
+    <div class="value">{{ stats.new_w }}</div>
+  </div>
+  <div class="card">
+    <div class="label">Новых за 30 дней</div>
+    <div class="value">{{ stats.new_m }}</div>
+  </div>
+  <div class="card">
+    <div class="label">Активных за сутки</div>
+    <div class="value">{{ stats.active_d }}</div>
+  </div>
+  <div class="card">
+    <div class="label">Активных за неделю</div>
+    <div class="value">{{ stats.active_w }}</div>
+  </div>
+  <div class="card">
+    <div class="label">Активных депозитов</div>
+    <div class="value">{{ stats.active_dep }}</div>
+    <div class="sub">{{ stats.pending_dep }} в ожидании, {{ stats.completed_dep }} завершено</div>
+  </div>
+  <div class="card">
+    <div class="label">Сумма общего депозита</div>
+    <div class="value">{{ "{:,.2f}".format(stats.sum_deposits_total).replace(",", " ") }}</div>
+    <div class="sub">+ {{ "{:,.2f}".format(stats.sum_deposits_today).replace(",", " ") }} за сегодня</div>
+  </div>
+  <div class="card">
+    <div class="label">Сумма выплат</div>
+    <div class="value">{{ "{:,.2f}".format(stats.sum_payouts).replace(",", " ") }}</div>
+    <div class="sub">+ {{ "{:,.2f}".format(stats.sum_payouts_today).replace(",", " ") }} за сегодня</div>
+  </div>
+  <div class="card">
+    <div class="label">Сумма выводов</div>
+    <div class="value">{{ "{:,.2f}".format(stats.sum_wd).replace(",", " ") }}</div>
+    <div class="sub">+ {{ "{:,.2f}".format(stats.sum_wd_today).replace(",", " ") }} за сегодня</div>
+  </div>
+  <div class="card">
+    <div class="label">Сумма реф. начислений</div>
+    <div class="value">{{ "{:,.2f}".format(stats.sum_refs).replace(",", " ") }}</div>
+    <div class="sub">+ {{ "{:,.2f}".format(stats.sum_refs_today).replace(",", " ") }} за сегодня</div>
+  </div>
+  <div class="card">
+    <div class="label">Сумма активных депозитов</div>
+    <div class="value">{{ "{:,.2f}".format(stats.sum_active).replace(",", " ") }}</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Регистрации за 30 дней</h2>
+  <div class="chart-wrap"><canvas id="chart-users"></canvas></div>
+</div>
+
+<div class="panel">
+  <h2>Депозиты за 30 дней</h2>
+  <div class="chart-wrap"><canvas id="chart-deposits"></canvas></div>
+</div>
+
+<div class="panel">
+  <h2>Выплаты за 30 дней</h2>
+  <div class="chart-wrap"><canvas id="chart-payouts"></canvas></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+  const els = {
+    users:    { el: document.getElementById('chart-users'),    color: '#6366f1', label: 'Регистрации' },
+    deposits: { el: document.getElementById('chart-deposits'), color: '#22c55e', label: 'Депозиты' },
+    payouts:  { el: document.getElementById('chart-payouts'),  color: '#f59e0b', label: 'Выплаты' },
+  };
+  if (!els.users.el || !window.Chart) return;
+
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+  Chart.defaults.font.size = 12;
+
+  function build(canvas, labels, data, color, label) {
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, 0, canvas.height || 220);
+    grad.addColorStop(0, color + 'cc');
+    grad.addColorStop(1, color + '00');
+
+    return new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: label,
+          data: data,
+          borderColor: color,
+          backgroundColor: grad,
+          tension: 0.35,
+          fill: true,
+          pointRadius: 0,
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: color,
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 2,
+          borderWidth: 2.5,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        animation: { duration: 700, easing: 'easeOutCubic' },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            borderColor: '#334155',
+            borderWidth: 1,
+            titleColor: '#f1f5f9',
+            bodyColor: '#e2e8f0',
+            padding: 10,
+            displayColors: false,
+            callbacks: { title: items => items[0].label, label: c => `${label}: ${c.parsed.y}` }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: '#1e293b', borderColor: '#334155' },
+            ticks: { color: '#64748b', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 }
+          },
+          y: {
+            grid: { color: '#1e293b', borderColor: '#334155' },
+            ticks: { color: '#64748b', precision: 0 },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+
+  fetch('/charts/data', { credentials: 'same-origin' })
+    .then(r => r.ok ? r.json() : Promise.reject(r.status))
+    .then(d => {
+      build(els.users.el,    d.labels, d.users,    els.users.color,    els.users.label);
+      build(els.deposits.el, d.labels, d.deposits, els.deposits.color, els.deposits.label);
+      build(els.payouts.el,  d.labels, d.payouts,  els.payouts.color,  els.payouts.label);
+    })
+    .catch(err => console.warn('chart data err', err));
+})();
+</script>
+
+<div class="panel">
+  <h2>Топ-10 рефоводов</h2>
+  {% if top_referrers %}
+  <table>
+    <tr><th>#</th><th>Пользователь</th><th>Начислений</th><th>Сумма</th></tr>
+    {% for tg, un, cnt, s in top_referrers %}
+    <tr><td>{{ loop.index }}</td><td>@{{ un or tg }}</td><td>{{ cnt }}</td><td>{{ s }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty"><h3>Пока пусто</h3><p>Реферальная активность появится после первых депозитов.</p></div>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Депозиты по дням (30д)</h2>
+  {% if deps_by_day %}
+  <table>
+    <tr><th>Дата</th><th>Кол-во</th><th>Сумма</th></tr>
+    {% for d, c, s in deps_by_day %}
+    <tr><td>{{ d }}</td><td>{{ c }}</td><td>{{ s }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">Нет данных</div>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Выплаты по дням (30д)</h2>
+  {% if pays_by_day %}
+  <table>
+    <tr><th>Дата</th><th>Кол-во</th><th>Сумма</th></tr>
+    {% for d, c, s in pays_by_day %}
+    <tr><td>{{ d }}</td><td>{{ c }}</td><td>{{ s }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">Нет данных</div>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Экспорт</h2>
+  <div class="flex-row">
+    <a class="btn" href="/export/users.xlsx" hx-boost="false">Users.xlsx</a>
+    <a class="btn" href="/export/users.csv" hx-boost="false">Users.csv</a>
+    <a class="btn" href="/export/deposits.xlsx" hx-boost="false">Deposits.xlsx</a>
+    <a class="btn" href="/export/deposits.csv" hx-boost="false">Deposits.csv</a>
+    <a class="btn" href="/export/payouts.xlsx" hx-boost="false">Payouts.xlsx</a>
+    <a class="btn" href="/export/withdrawals.xlsx" hx-boost="false">Withdrawals.xlsx</a>
+  </div>
+</div>
+{% endblock %}

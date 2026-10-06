@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Пользователи{% endblock %}
+{% block content %}
+<h1>Пользователи</h1>
+
+<div class="panel">
+  <form method="get" class="flex-row">
+    <input name="q" value="{{ q }}" placeholder="Telegram ID, @username, ФИО, телефон или номер карты" style="flex:1;">
+    <button class="btn btn-primary">Найти</button>
+  </form>
+</div>
+
+<div class="panel">
+  {% if items %}
+  <table>
+    <tr><th>#</th><th>TG ID</th><th>Username</th><th>Имя</th><th>Телефон</th><th>Баланс</th><th>Регистрация</th><th>Блок</th><th></th></tr>
+    {% for u in items %}
+    <tr>
+      <td>{{ u.id }}</td><td>{{ u.telegram_id }}</td>
+      <td>@{{ u.username or '—' }}</td><td>{{ u.full_name or '—' }}</td>
+      <td>{{ u.phone or '—' }}</td><td>{{ u.balance }}</td>
+      <td>{{ u.created_at | bk_date }}</td>
+      <td><span class="dot {% if u.is_blocked %}dot-off{% else %}dot-on{% endif %}"></span></td>
+      <td><a class="btn btn-sm" href="/users/{{ u.id }}">Открыть</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty"><h3>Ничего не найдено</h3><p>Попробуй изменить запрос или подожди регистраций.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

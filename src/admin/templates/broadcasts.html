@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Рассылки{% endblock %}
+{% block content %}
+<h1>Рассылки</h1>
+
+{% if request.query_params.get('ok') %}
+<div class="panel" style="border-color: var(--color-success); color: var(--color-success);">
+  Рассылка поставлена в очередь, отправка стартует в течение минуты.
+</div>
+{% endif %}
+{% if request.query_params.get('error') == 'empty' %}
+<div class="panel" style="border-color: var(--color-danger); color: var(--color-danger);">
+  Нужно заполнить хотя бы текст или указать file_id медиа.
+</div>
+{% endif %}
+
+<div class="panel">
+  <h2>Новая рассылка</h2>
+  <form method="post" action="/broadcasts/create">
+    <div class="field">
+      <label>Текст / подпись</label>
+      <textarea name="text" rows="5"></textarea>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Тип медиа</label>
+        <select name="media_type">
+          <option value="">Без медиа</option>
+          <option value="photo">Фото</option>
+          <option value="video">Видео</option>
+        </select>
+      </div>
+      <div class="field"><label>file_id медиа</label><input name="media_file_id" placeholder="опционально"></div>
+      <div class="field">
+        <label>Аудитория</label>
+        <select name="audience">
+          <option value="all">Всем</option>
+          <option value="active">Активным</option>
+          <option value="with_deposit">С депозитом</option>
+          <option value="without_deposit">Без депозита</option>
+          <option value="by_tariff">По тарифу</option>
+        </select>
+      </div>
+      <div class="field"><label>ID тарифа</label><input name="tariff_id" type="number" placeholder="для «по тарифу»"></div>
+      <div class="field"><label>Запланировать на</label><input name="scheduled_at" type="datetime-local"></div>
+    </div>
+    <button class="btn btn-primary">Создать</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>История</h2>
+  {% if items %}
+  <table>
+    <tr><th>#</th><th>Аудитория</th><th>Статус</th><th>Всего</th><th>Отпр.</th><th>Ошибок</th><th>Расписание</th><th>Создана</th></tr>
+    {% for b in items %}
+    <tr>
+      <td>{{ b.id }}</td><td>{{ tr('broadcast_audience', b.audience) }}</td>
+      <td><span class="badge">{{ tr('broadcast_status', b.status) }}</span></td>
+      <td>{{ b.total }}</td><td>{{ b.sent }}</td><td>{{ b.failed }}</td>
+      <td>{{ b.scheduled_at | bk }}</td>
+      <td>{{ b.created_at | bk }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<div class="empty"><h3>Истории нет</h3></div>{% endif %}
+</div>
+{% endblock %}

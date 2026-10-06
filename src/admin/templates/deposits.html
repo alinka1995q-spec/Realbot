@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Депозиты - Deposit Bot{% endblock %}
+{% block content %}
+<h1>Депозиты</h1>
+
+<div class="tabs">
+  {% for s in statuses %}
+    <a href="?status={{ s }}" class="{% if s == current_status %}active{% endif %}">{{ tr('deposit_status', s) }}</a>
+  {% endfor %}
+</div>
+
+<div class="panel">
+  {% if items %}
+  <table>
+    <tr>
+      <th>#</th><th>Пользователь</th><th>Тариф</th><th>Сумма</th>
+      <th>Статус</th><th>Создан</th><th></th>
+    </tr>
+    {% for d in items %}
+    {% set u = users_map.get(d.user_id) %}
+    <tr>
+      <td>{{ d.id }}</td>
+      <td>{% if u %}@{{ u.username or u.telegram_id }}{% else %}#{{ d.user_id }}{% endif %}</td>
+      <td>{{ d.tariff.name if d.tariff else '?' }}</td>
+      <td>{{ d.amount }}</td>
+      <td><span class="badge badge-{{ d.status }}">{{ tr('deposit_status', d.status) }}</span></td>
+      <td>{{ d.created_at | bk }}</td>
+      <td><a class="btn btn-sm" href="/deposits/{{ d.id }}">Открыть</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty">
+    <h3>Здесь пока ничего нет</h3>
+    <p>Депозиты в статусе «{{ tr('deposit_status', current_status) }}» отсутствуют.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

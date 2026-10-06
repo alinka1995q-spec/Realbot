@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Рефералы{% endblock %}
+{% block content %}
+<h1>Рефералы</h1>
+<div class="cards">
+  <div class="card"><div class="label">Всего начислено</div><div class="value">{{ total }}</div></div>
+</div>
+<div class="panel">
+  <h2>Топ-50 рефоводов</h2>
+  {% if top %}
+  <table>
+    <tr><th>#</th><th>Пользователь</th><th>Начислений</th><th>Сумма</th></tr>
+    {% for tg, un, cnt, s in top %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td><a href="/users/{{ tg }}">@{{ un or tg }}</a></td>
+      <td>{{ cnt }}</td><td>{{ s }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<div class="empty"><h3>Пока пусто</h3></div>{% endif %}
+</div>
+{% endblock %}

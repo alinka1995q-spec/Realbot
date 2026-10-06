@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Настройки{% endblock %}
+{% block content %}
+<h1>Настройки</h1>
+
+<div class="panel">
+  <form method="post" action="/settings/save">
+    {% for key, label in keys %}
+    <div class="field">
+      <label>{{ label }} <code style="color:var(--color-text-muted)">{{ key }}</code></label>
+      <input name="{{ key }}" value="{{ values[key] }}">
+    </div>
+    {% endfor %}
+    <button class="btn btn-primary">Сохранить</button>
+  </form>
+</div>
+
+<div class="panel">
+  <h2>Экспорт данных</h2>
+  <div class="flex-row">
+    <a class="btn" href="/export/users.xlsx" hx-boost="false">Users.xlsx</a>
+    <a class="btn" href="/export/users.csv" hx-boost="false">Users.csv</a>
+    <a class="btn" href="/export/deposits.xlsx" hx-boost="false">Deposits.xlsx</a>
+    <a class="btn" href="/export/payouts.xlsx" hx-boost="false">Payouts.xlsx</a>
+    <a class="btn" href="/export/withdrawals.xlsx" hx-boost="false">Withdrawals.xlsx</a>
+  </div>
+</div>
+{% endblock %}

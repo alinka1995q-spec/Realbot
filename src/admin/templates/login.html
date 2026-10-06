@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Вход - Deposit Bot Admin</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <h1>Вход в админ-панель</h1>
+      <form method="post" action="/login">
+        <div class="field">
+          <label>Логин</label>
+          <input type="text" name="login" required autofocus autocomplete="username">
+        </div>
+        <div class="field">
+          <label>Пароль</label>
+          <input type="password" name="password" required>
+        </div>
+        <button class="btn btn-primary" type="submit" style="width:100%;">Войти</button>
+        {% if error %}<div class="error">{{ error }}</div>{% endif %}
+      </form>
+    </div>
+  </div>
+</body>
+</html>

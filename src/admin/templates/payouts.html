@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Выплаты{% endblock %}
+{% block content %}
+<h1>Выплаты</h1>
+
+<div class="tabs">
+  {% set periods = [
+    ('today',      'Сегодня'),
+    ('tomorrow',   'Завтра'),
+    ('overdue',    'Просрочены'),
+    ('all_pending','Все ожидают'),
+    ('paid',       'Выплачено'),
+    ('cancelled',  'Отменено'),
+  ] %}
+  {% for code, label in periods %}
+    <a href="?period={{ code }}" class="{% if code == period %}active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="panel">
+  {% if items %}
+  <table>
+    <tr>
+      <th>#</th>
+      <th>Пользователь</th>
+      <th>Депозит</th>
+      <th>Сумма</th>
+      <th>Срок</th>
+      <th>Банк</th>
+      <th>Номер</th>
+      <th>ФИО</th>
+      <th>Статус</th>
+      <th></th>
+    </tr>
+    {% for p in items %}
+    {% set u = users_map.get(p.user_id) %}
+    {% set d = p.deposit %}
+    <tr>
+      <td>{{ p.id }}</td>
+      <td>{% if u %}<a href="/users/{{ u.id }}">@{{ u.username or u.telegram_id }}</a>{% endif %}</td>
+      <td><a href="/deposits/{{ p.deposit_id }}">#{{ p.deposit_id }}</a></td>
+      <td>{{ p.amount }}</td>
+      <td>{{ p.due_at | bk }}</td>
+      <td>{{ d.payout_bank or '—' if d else '—' }}</td>
+      <td><code>{{ d.payout_number or '—' if d else '—' }}</code></td>
+      <td>{{ d.payout_full_name or '—' if d else '—' }}</td>
+      <td><span class="badge badge-{{ p.status }}">{{ tr('payout_status', p.status) }}</span></td>
+      <td>
+        {% if p.status == 'pending' %}
+        <div class="flex-row" style="gap:6px;">
+          <form method="post" action="/payouts/{{ p.id }}/mark-paid" style="display:inline;"
+                onsubmit="return confirm('Подтвердить выплату №{{ p.id }} на сумму {{ p.amount }} сом?');">
+            <input type="hidden" name="period" value="{{ period }}">
+            <button class="btn btn-sm btn-success">✅ Выплатить</button>
+          </form>
+          <button class="btn btn-sm" type="button" onclick="document.getElementById('req-{{ p.id }}').classList.toggle('show')">Реквизиты</button>
+        </div>
+        {% endif %}
+      </td>
+    </tr>
+    {% if p.status == 'pending' %}
+    <tr id="req-{{ p.id }}" class="req-row">
+      <td colspan="10">
+        <form method="post" action="/payouts/{{ p.id }}/edit-requisites" class="req-form">
+          <input type="hidden" name="period" value="{{ period }}">
+          <div class="field"><label>Банк</label><input name="payout_bank" value="{{ (d.payout_bank if d else '') or '' }}" placeholder="MBank, O!Деньги, USDT TRC20..."></div>
+          <div class="field"><label>Номер карты / телефона / кошелька</label><input name="payout_number" value="{{ (d.payout_number if d else '') or '' }}"></div>
+          <div class="field"><label>ФИО получателя</label><input name="payout_full_name" value="{{ (d.payout_full_name if d else '') or '' }}"></div>
+          <button class="btn btn-sm btn-primary" type="submit">Сохранить</button>
+        </form>
+      </td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty"><h3>Здесь ничего нет</h3>
+    <p>{% if period == 'today' %}Выплат на сегодня нет.{% elif period == 'tomorrow' %}На завтра выплат не запланировано.{% elif period == 'overdue' %}Просроченных нет.{% else %}Пусто.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
+
+<style>
+  tr.req-row { display: none; }
+  tr.req-row.show { display: table-row; }
+  tr.req-row td { background: var(--color-bg); }
+  .req-form {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1.5fr auto;
+    gap: 10px;
+    align-items: end;
+    padding: 8px 0;
+  }
+  @media (max-width: 900px) {
+    .req-form { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}

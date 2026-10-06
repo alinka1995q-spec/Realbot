@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <title>{% block title %}Deposit Bot Admin{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+</head>
+<body hx-boost="true" hx-swap="outerHTML transition:true" hx-push-url="true" hx-indicator="#nav-progress" hx-target="body">
+  <div id="nav-progress" class="nav-progress"></div>
+  <button class="burger" aria-label="Меню" onclick="toggleSidebar()" hx-boost="false">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="4" x2="20" y1="12" y2="12"/>
+      <line x1="4" x2="20" y1="6" y2="6"/>
+      <line x1="4" x2="20" y1="18" y2="18"/>
+    </svg>
+  </button>
+  <div class="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+          <rect width="20" height="14" x="2" y="6" rx="2"/>
+        </svg>
+        Deposit Bot
+        <button class="sidebar-close" aria-label="Закрыть" onclick="toggleSidebar(false)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" x2="6" y1="6" y2="18"/>
+            <line x1="6" x2="18" y1="6" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <nav>
+        <a href="/dashboard" class="{% if active_page=='dashboard' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="7" height="9" x="3" y="3" rx="1"/>
+            <rect width="7" height="5" x="14" y="3" rx="1"/>
+            <rect width="7" height="9" x="14" y="12" rx="1"/>
+            <rect width="7" height="5" x="3" y="16" rx="1"/>
+          </svg>
+          Дашборд
+        </a>
+        <a href="/deposits" class="{% if active_page=='deposits' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/>
+          </svg>
+          Депозиты
+        </a>
+        <a href="/payouts" class="{% if active_page=='payouts' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="12" x="2" y="6" rx="2"/>
+            <circle cx="12" cy="12" r="2"/>
+            <path d="M6 12h.01M18 12h.01"/>
+          </svg>
+          Выплаты
+        </a>
+        <a href="/withdrawals" class="{% if active_page=='withdrawals' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v14"/><path d="m6 13 6-6 6 6"/><path d="M19 21H5"/>
+          </svg>
+          Выводы
+        </a>
+        <a href="/tariffs" class="{% if active_page=='tariffs' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="16" height="20" x="4" y="2" rx="2"/>
+            <path d="M9 12h6"/><path d="M9 16h6"/><path d="M9 8h6"/>
+          </svg>
+          Тарифы
+        </a>
+        <a href="/banks" class="{% if active_page=='banks' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect width="20" height="14" x="2" y="5" rx="2"/>
+            <line x1="2" x2="22" y1="10" y2="10"/>
+          </svg>
+          Банки
+        </a>
+        <a href="/requisites" class="{% if active_page=='requisites' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" x2="21" y1="22" y2="22"/>
+            <line x1="6" x2="6" y1="18" y2="11"/>
+            <line x1="10" x2="10" y1="18" y2="11"/>
+            <line x1="14" x2="14" y1="18" y2="11"/>
+            <line x1="18" x2="18" y1="18" y2="11"/>
+            <polygon points="12 2 20 7 4 7"/>
+          </svg>
+          Реквизиты
+        </a>
+        <a href="/users" class="{% if active_page=='users' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Пользователи
+        </a>
+        <a href="/referrals" class="{% if active_page=='referrals' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="18" cy="5" r="3"/>
+            <circle cx="6" cy="12" r="3"/>
+            <circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/>
+            <line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>
+          </svg>
+          Рефералы
+        </a>
+        <a href="/broadcasts" class="{% if active_page=='broadcasts' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>
+          </svg>
+          Рассылки
+        </a>
+        <a href="/admins" class="{% if active_page=='admins' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/>
+          </svg>
+          Админы
+        </a>
+        <a href="/texts" class="{% if active_page=='texts' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" x2="8" y1="13" y2="13"/>
+            <line x1="16" x2="8" y1="17" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          Тексты
+        </a>
+        <a href="/settings" class="{% if active_page=='settings' %}active{% endif %}">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          Настройки
+        </a>
+        <a href="/logout" class="logout-link" hx-boost="false">
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" x2="9" y1="12" y2="12"/>
+          </svg>
+          Выход
+        </a>
+      </nav>
+    </aside>
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar(force) {
+      const sb = document.getElementById('sidebar');
+      const bd = document.querySelector('.sidebar-backdrop');
+      const opening = (typeof force === 'boolean') ? force : !sb.classList.contains('open');
+      sb.classList.toggle('open', opening);
+      bd.classList.toggle('visible', opening);
+      document.body.classList.toggle('no-scroll', opening);
+    }
+    // закрываем сайдбар при переходе по ссылке (на мобиле)
+    document.querySelectorAll('.sidebar nav a').forEach(a => {
+      a.addEventListener('click', () => {
+        if (window.innerWidth < 900) toggleSidebar(false);
+      });
+    });
+
+    // отключаем htmx-boost на всех POST-формах: пусть работают как обычный submit (303 redirect от сервера)
+    function disableBoostOnPostForms() {
+      document.querySelectorAll('form[method="post" i]:not([hx-boost])').forEach(f => {
+        f.setAttribute('hx-boost', 'false');
+      });
+    }
+    disableBoostOnPostForms();
+    document.body.addEventListener('htmx:afterSwap', disableBoostOnPostForms);
+  </script>
+</body>
+</html>

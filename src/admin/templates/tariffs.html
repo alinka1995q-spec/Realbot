@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Тарифы{% endblock %}
+{% block content %}
+<h1>Тарифы</h1>
+
+<div class="panel">
+  <h2>Список</h2>
+  {% if items %}
+  <table>
+    <tr><th>#</th><th>Название</th><th>Сумма</th><th>Срок</th><th>Период</th><th>Выплата</th><th>Тело</th><th>Лимит покупок</th><th>Активен</th><th></th></tr>
+    {% for t in items %}
+    <tr>
+      <td>{{ t.id }}</td>
+      <td>{{ t.name }}</td>
+      <td>{{ t.min_amount }} – {{ t.max_amount }}</td>
+      <td>{{ t.duration_days }} дн.</td>
+      <td>{{ tr('tariff_period', t.period) }}{% if t.period == 'every_n_days' %} ({{ t.period_n_days }}){% endif %}</td>
+      <td>
+        {% if t.payout_percent %}{{ t.payout_percent }}%{% endif %}
+        {% if t.payout_fixed %}{{ t.payout_fixed }}{% endif %}
+      </td>
+      <td>{% if t.body_included %}включено{% else %}отдельно{% endif %}</td>
+      <td>{% if t.max_purchases and t.max_purchases > 0 %}{{ t.max_purchases }}{% else %}∞{% endif %}</td>
+      <td><span class="dot {% if t.is_active %}dot-on{% else %}dot-off{% endif %}"></span></td>
+      <td>
+        <form method="post" action="/tariffs/{{ t.id }}/toggle" style="display:inline;">
+          <button class="btn btn-sm">{% if t.is_active %}Отключить{% else %}Включить{% endif %}</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty"><h3>Тарифов нет</h3><p>Добавьте первый тариф ниже.</p></div>
+  {% endif %}
+</div>
+
+<div class="panel">
+  <h2>Новый тариф</h2>
+  <form method="post" action="/tariffs/create">
+    <div class="row">
+      <div class="field"><label>Название</label><input name="name" required></div>
+      <div class="field"><label>Описание</label><input name="description"></div>
+      <div class="field"><label>Мин. сумма</label><input name="min_amount" type="number" step="0.01" required></div>
+      <div class="field"><label>Макс. сумма</label><input name="max_amount" type="number" step="0.01" required></div>
+      <div class="field"><label>Дней работы</label><input name="duration_days" type="number" required></div>
+      <div class="field">
+        <label>Период</label>
+        <select name="period">
+          {% for p in periods %}<option value="{{ p }}">{{ tr('tariff_period', p) }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field"><label>Шаг (для every_n_days)</label><input name="period_n_days" type="number" value="1"></div>
+      <div class="field"><label>Процент выплаты</label><input name="payout_percent" type="number" step="0.01" placeholder="оставь пустым, если фиксированная"></div>
+      <div class="field"><label>Фикс. выплата</label><input name="payout_fixed" type="number" step="0.01" placeholder="оставь пустым, если процент"></div>
+      <div class="field"><label>Тело в выплатах</label>
+        <select name="body_included"><option value="on">включено (аннуитет)</option><option value="">отдельно (в конце)</option></select>
+      </div>
+      <div class="field"><label>Сортировка</label><input name="sort_order" type="number" value="0"></div>
+      <div class="field"><label>Макс. покупок на пользователя</label><input name="max_purchases" type="number" min="0" value="0" placeholder="0 = без лимита"></div>
+    </div>
+    <button class="btn btn-primary" type="submit">Создать</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Выводы{% endblock %}
+{% block content %}
+<h1>Выводы</h1>
+<div class="tabs">
+  {% for s in statuses %}<a href="?status={{ s }}" class="{% if s == current_status %}active{% endif %}">{{ tr('withdrawal_status', s) }}</a>{% endfor %}
+</div>
+<div class="panel">
+  {% if items %}
+  <table>
+    <tr><th>#</th><th>Пользователь</th><th>Сумма</th><th>Банк</th><th>Номер</th><th>Получатель</th><th>Статус</th><th></th></tr>
+    {% for w in items %}
+    {% set u = users_map.get(w.user_id) %}
+    <tr>
+      <td>{{ w.id }}</td>
+      <td>{% if u %}<a href="/users/{{ u.id }}">@{{ u.username or u.telegram_id }}</a>{% endif %}</td>
+      <td>{{ w.amount }}</td>
+      <td>{{ w.bank }}</td>
+      <td>{{ w.number }}</td>
+      <td>{{ w.holder_name or '—' }}</td>
+      <td><span class="badge badge-{{ w.status }}">{{ tr('withdrawal_status', w.status) }}</span></td>
+      <td>
+        {% if w.status == 'pending' %}
+        <div class="flex-row" style="gap:6px;">
+          <form method="post" action="/withdrawals/{{ w.id }}/approve" hx-boost="false" style="display:inline;">
+            <button type="submit" class="btn btn-sm btn-success">Одобрить</button>
+          </form>
+          <form method="post" action="/withdrawals/{{ w.id }}/reject" hx-boost="false" class="flex-row" style="gap:4px;">
+            <input name="reason" placeholder="причина" style="width:120px;">
+            <button type="submit" class="btn btn-sm btn-danger">Отклонить</button>
+          </form>
+        </div>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <div class="empty"><h3>Заявок нет</h3></div>
+  {% endif %}
+</div>
+{% endblock %}
